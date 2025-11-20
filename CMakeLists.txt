@@ -112,3 +112,14 @@ target_compile_definitions(ve
     PUBLIC
         GLFW_INCLUDE_VULKAN
 )
+
+
+################################################################################
+# Platform-specific settings
+################################################################################
+# Android
+if(ANDROID)
+    target_link_libraries(ve PRIVATE
+        android
+    )
+endif()
