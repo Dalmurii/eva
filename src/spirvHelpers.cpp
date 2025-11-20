@@ -4,7 +4,7 @@
 #include <glslang/Public/resource_limits_c.h>
 #include <vulkan/vulkan_core.h>
 #include <spirv_reflect.h>
-#include "templateHelper.h"
+#include "eva-native-factory.h"
 #include "eva-runtime.h"
 
 using namespace eva;

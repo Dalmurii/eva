@@ -9,7 +9,7 @@
 #include <algorithm>// std::all_of, std::any_of
 #include <fstream>
 #include "error.h"
-#include "templateHelper.h"
+#include "eva-native-factory.h"
 #include "eva-runtime.h"
 
 // #define USE_DEBUG_PRINTF 1
