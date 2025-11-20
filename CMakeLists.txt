@@ -13,6 +13,7 @@ set(VE_SOURCES
 
 set(VE_HEADERS
     src/eva-runtime.h
+    src/eva-enums.h
     src/error.h
     src/eva-native-factory.h
 )
