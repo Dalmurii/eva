@@ -1,5 +1,5 @@
-#ifndef VULKAN_APP_H
-#define VULKAN_APP_H
+#ifndef EVA_RUNTIME_H
+#define EVA_RUNTIME_H
 
 #include <vulkan/vulkan_core.h>
 #include <vector>
@@ -13,20 +13,10 @@
 #define VULKAN_VERSION_1_3  // TODO: whether to use this or not depends on the system
 
 
-extern PFN_vkGetBufferDeviceAddressKHR vkGetBufferDeviceAddressKHR_;
-extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR_;
-extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR_;
-extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR_;
-extern PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddressKHR_;
-extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR_;
-extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR_;
-extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR_;
-extern PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR_;
 
+namespace eva {
 
-namespace ve {
-
-class VulkanApp;
+class Runtime;
 class Device;
 class Queue;
 class CommandPool;
@@ -54,7 +44,7 @@ class AccelerationStructure;
 
 
 #define VULKAN_FRIENDS \
-    friend class VulkanApp; \
+    friend class Runtime; \
     friend class Device; \
     friend class Queue; \
     friend class CommandPool; \
@@ -359,17 +349,17 @@ enum class OwnershipTransferOpType {
 };
 
 
-class VulkanApp {
+class Runtime {
     VULKAN_CLASS_COMMON
-    ~VulkanApp();
-    VulkanApp();
-    VulkanApp(const VulkanApp&) = delete;
-    VulkanApp& operator=(const VulkanApp&) = delete;
+    ~Runtime();
+    Runtime();
+    Runtime(const Runtime&) = delete;
+    Runtime& operator=(const Runtime&) = delete;
     Device createDevice(const DeviceSettings& settings);
     Device createDevice(VkPhysicalDevice pd, const DeviceSettings& settings);
     
 public:
-    static VulkanApp& get();    // singleton pattern
+    static Runtime& get();    // singleton pattern
     uint32_t deviceCount() const;
     Device device(int gpuIndex=-1); 
     Device device(DeviceSettings settings);  
@@ -1920,14 +1910,14 @@ struct AsBuildInfo {
 };
 
 
-} // namespace ve
+} // namespace eva
 
 
 
 namespace std {
     template<>
-    struct hash<ve::ShaderStage> {
-        size_t operator()(const ve::ShaderStage& stage) const noexcept;
+    struct hash<eva::ShaderStage> {
+        size_t operator()(const eva::ShaderStage& stage) const noexcept;
     };
 } 
 
@@ -1936,4 +1926,4 @@ inline auto alignTo = [](auto value, auto alignment) -> decltype(value) {
 };
 
 
-#endif // VULKAN_APP_H
+#endif // EVA_RUNTIME_H

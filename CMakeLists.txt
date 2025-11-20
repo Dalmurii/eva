@@ -7,12 +7,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Library source files
 set(VE_SOURCES
-    src/vulkanApp.cpp
+    src/eva-runtime.cpp
     src/spirvHelpers.cpp
 )
 
 set(VE_HEADERS
-    src/vulkanApp.h
+    src/eva-runtime.h
     src/error.h
     src/templateHelper.h
 )

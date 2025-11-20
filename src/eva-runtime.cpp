@@ -1,3 +1,4 @@
+#include <vulkan/vulkan_core.h>
 #include <GLFW/glfw3.h>
 #include <array>
 #include <deque>
@@ -9,15 +10,15 @@
 #include <fstream>
 #include "error.h"
 #include "templateHelper.h"
-#include "vulkanApp.h"
+#include "eva-runtime.h"
 
 // #define USE_DEBUG_PRINTF 1
 
 
-ve::SpvBlob glsl2spv(VkShaderStageFlags stage, const char* shaderSource);
-void* createReflectShaderModule(const ve::SpvBlob spvBlob);
+eva::SpvBlob glsl2spv(VkShaderStageFlags stage, const char* shaderSource);
+void* createReflectShaderModule(const eva::SpvBlob spvBlob);
 void destroyReflectShaderModule(void* pModule);
-ve::PipelineLayoutDesc extractPipelineLayoutDesc(const void* pModule);
+eva::PipelineLayoutDesc extractPipelineLayoutDesc(const void* pModule);
 std::array<uint32_t, 3> extractWorkGroupSize(const void* pModule);
 
 
@@ -38,7 +39,7 @@ inline static uint64_t hashCombine(uint64_t h1, uint64_t h2)
 	return h1 ^ (h2 + 0x9e3779b97f4a7c15ULL + (h1<<6) + (h1>>2));
 }
 
-using namespace ve;
+using namespace eva;
 
 
 static void printQueueFamily(uint32_t qfIndex, uint32_t qCount, VkQueueFlags qFlags)
@@ -188,7 +189,7 @@ static std::pair<VkMemoryAllocateInfo, VkMemoryPropertyFlags> getMemoryAllocInfo
 /////////////////////////////////////////////////////////////////////////////////////////
 // Impl classes
 /////////////////////////////////////////////////////////////////////////////////////////
-struct VulkanApp::Impl {
+struct Runtime::Impl {
     const VkInstance instance;
     std::vector<Device> devices;
     std::vector<Window> windows;
@@ -204,7 +205,7 @@ struct Device::Impl {
     const VkPhysicalDevice vkPhysicalDevice;
     const VkDevice vkDevice;
     // const VkInstance vkInstance;
-    const VulkanApp& parent;
+    const Runtime& parent;
     const DeviceSettings settings;
     
     struct {
@@ -235,7 +236,7 @@ struct Device::Impl {
 
     Impl(VkPhysicalDevice vkPhysicalDevice,   
         VkDevice vkDevice, 
-        const VulkanApp& parent,
+        const Runtime& parent,
         const DeviceSettings& settings,
         uint32_t graphicsQfIndex,
         uint32_t computeQfIndex,
@@ -669,21 +670,21 @@ struct AccelerationStructure::Impl {
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// VulkanApp
+// Runtime
 /////////////////////////////////////////////////////////////////////////////////////////
-VulkanApp& VulkanApp::get()
+Runtime& Runtime::get()
 {
-    static VulkanApp singleton;
+    static Runtime singleton;
     return singleton;
 }
 
-VulkanApp::VulkanApp()
+Runtime::Runtime()
 {
     glfwInit();
     pImpl = new Impl(createVkInstance());
 }
 
-VulkanApp::~VulkanApp()
+Runtime::~Runtime()
 {
     for (auto& window : impl().windows) 
     {
@@ -703,12 +704,12 @@ VulkanApp::~VulkanApp()
     // glfwTerminate();
 }
 
-uint32_t VulkanApp::deviceCount() const
+uint32_t Runtime::deviceCount() const
 {
     return (uint32_t)impl().devices.size();
 }
 
-Device VulkanApp::device(int gpuIndex)
+Device Runtime::device(int gpuIndex)
 {
     if (gpuIndex < 0)
         gpuIndex += (int)impl().devices.size();
@@ -717,7 +718,7 @@ Device VulkanApp::device(int gpuIndex)
     return impl().devices[gpuIndex];
 }
 
-Device VulkanApp::device(DeviceSettings settings)
+Device Runtime::device(DeviceSettings settings)
 {
     for (auto& device : impl().devices) 
     {
@@ -727,7 +728,7 @@ Device VulkanApp::device(DeviceSettings settings)
     return createDevice(settings);
 }
 
-Device VulkanApp::createDevice(const DeviceSettings& settings)
+Device Runtime::createDevice(const DeviceSettings& settings)
 {
     auto physicalDevices = arrayFrom(vkEnumeratePhysicalDevices, impl().instance);
     
@@ -799,7 +800,7 @@ struct PNextChain {
     }
 };
 
-Device VulkanApp::createDevice(VkPhysicalDevice pd, const DeviceSettings& settings)
+Device Runtime::createDevice(VkPhysicalDevice pd, const DeviceSettings& settings)
 {
     auto qfProps = arrayFrom(vkGetPhysicalDeviceQueueFamilyProperties, pd);
     
@@ -2361,7 +2362,7 @@ inline bool ShaderStage::operator==(const ShaderStage& other) const noexcept
 }
 
 
-size_t std::hash<ve::ShaderStage>::operator()(const ve::ShaderStage& stage) const noexcept 
+size_t std::hash<eva::ShaderStage>::operator()(const eva::ShaderStage& stage) const noexcept 
 {
     constexpr uint64_t kNullTag = 0x9E3779B97F4A7C15ull;
     uint64_t h = stage.shader ? hashShaderInput(*stage.shader) : kNullTag;
@@ -3316,7 +3317,7 @@ struct Window::Impl {
     
 };
 
-Window VulkanApp::createWindow(WindowCreateInfo info)
+Window Runtime::createWindow(WindowCreateInfo info)
 {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);

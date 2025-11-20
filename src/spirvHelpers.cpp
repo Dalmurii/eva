@@ -5,9 +5,9 @@
 #include <vulkan/vulkan_core.h>
 #include <spirv_reflect.h>
 #include "templateHelper.h"
-#include "vulkanApp.h"
+#include "eva-runtime.h"
 
-using namespace ve;
+using namespace eva;
 
 #define GLSLANG_STAGE_MAPPING(vk, glslang) case vk: glslang_stage = glslang; break
 
