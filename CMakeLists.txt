@@ -1,17 +1,20 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(vulkan-engine VERSION 1.0.0 LANGUAGES CXX)
+project(eva VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Build options
+option(EVA_BUILD_SAMPLES "Build EVA sample projects" OFF)
+
 # Library source files
-set(VE_SOURCES
+set(EVA_SOURCES
     src/eva-runtime.cpp
     src/spirvHelpers.cpp
 )
 
-set(VE_HEADERS
+set(EVA_HEADERS
     src/eva-runtime.h
     src/eva-enums.h
     src/error.h
@@ -19,7 +22,7 @@ set(VE_HEADERS
 )
 
 # Create static library
-add_library(ve STATIC ${VE_SOURCES} ${VE_HEADERS})
+add_library(eva STATIC ${EVA_SOURCES} ${EVA_HEADERS})
 
 # Find Vulkan
 find_package(Vulkan REQUIRED)
@@ -28,42 +31,42 @@ if (NOT Vulkan_FOUND)
 endif()
 
 # External dependencies directory
-if(NOT DEFINED VE_EXTERNAL_DIR)
-    # Use ve's own external directory
-    set(VE_EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external")
+if(NOT DEFINED EVA_EXTERNAL_DIR)
+    # Use eva's own external directory
+    set(EVA_EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external")
 endif()
 
 ################################################################################
 # SPIRV-Tools (check if already configured by parent)
 ################################################################################
 if(NOT TARGET SPIRV-Tools)
-    message(STATUS "[VE] Configuring SPIRV-Tools...")
-    set(SPIRV-Headers_SOURCE_DIR "${VE_EXTERNAL_DIR}/spirv-headers")
-    set(mimalloc_SOURCE_DIR "${VE_EXTERNAL_DIR}/mimalloc")
-    add_subdirectory(${VE_EXTERNAL_DIR}/SPIRV-Tools EXCLUDE_FROM_ALL)
-    message(STATUS "[VE] SPIRV-Tools configuration completed.")
+    message(STATUS "[EVA] Configuring SPIRV-Tools...")
+    set(SPIRV-Headers_SOURCE_DIR "${EVA_EXTERNAL_DIR}/spirv-headers")
+    set(mimalloc_SOURCE_DIR "${EVA_EXTERNAL_DIR}/mimalloc")
+    add_subdirectory(${EVA_EXTERNAL_DIR}/SPIRV-Tools EXCLUDE_FROM_ALL)
+    message(STATUS "[EVA] SPIRV-Tools configuration completed.")
 else()
-    message(STATUS "[VE] Using existing SPIRV-Tools target")
+    message(STATUS "[EVA] Using existing SPIRV-Tools target")
 endif()
 
 ################################################################################
 # SPIRV-Reflect (check if already configured by parent)
 ################################################################################
 if(NOT TARGET spirv-reflect-static)
-    message(STATUS "[VE] Configuring SPIRV-Reflect...")
+    message(STATUS "[EVA] Configuring SPIRV-Reflect...")
     set(SPIRV_REFLECT_EXECUTABLE OFF CACHE BOOL "Build spirv-reflect executable")
     set(SPIRV_REFLECT_STATIC_LIB ON CACHE BOOL "Build a SPIRV-Reflect static library")
-    add_subdirectory(${VE_EXTERNAL_DIR}/SPIRV-Reflect EXCLUDE_FROM_ALL)
-    message(STATUS "[VE] SPIRV-Reflect configuration completed.")
+    add_subdirectory(${EVA_EXTERNAL_DIR}/SPIRV-Reflect EXCLUDE_FROM_ALL)
+    message(STATUS "[EVA] SPIRV-Reflect configuration completed.")
 else()
-    message(STATUS "[VE] Using existing SPIRV-Reflect target")
+    message(STATUS "[EVA] Using existing SPIRV-Reflect target")
 endif()
 
 ################################################################################
 # glslang (check if already configured by parent)
 ################################################################################
 if(NOT TARGET glslang)
-    message(STATUS "[VE] Configuring glslang...")
+    message(STATUS "[EVA] Configuring glslang...")
     set(BUILD_EXTERNAL OFF CACHE BOOL "Disable building external dependencies")
     set(ALLOW_EXTERNAL_SPIRV_TOOLS ON CACHE BOOL "Allow external SPIRV-Tools")
     set(ENABLE_HLSL OFF CACHE BOOL "Disable HLSL support")
@@ -71,34 +74,34 @@ if(NOT TARGET glslang)
     set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "Disable glslang binaries")
     set(SKIP_SPIRV_TOOLS_INSTALL ON CACHE BOOL "Skip installation of SPIRV-Tools")
     set(SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "Skip building SPIRV-Tools executables")
-    add_subdirectory(${VE_EXTERNAL_DIR}/glslang EXCLUDE_FROM_ALL)
-    message(STATUS "[VE] glslang configuration completed.")
+    add_subdirectory(${EVA_EXTERNAL_DIR}/glslang EXCLUDE_FROM_ALL)
+    message(STATUS "[EVA] glslang configuration completed.")
 else()
-    message(STATUS "[VE] Using existing glslang target")
+    message(STATUS "[EVA] Using existing glslang target")
 endif()
 
 ################################################################################
 # GLFW (check if already configured by parent)
 ################################################################################
 if(NOT TARGET glfw)
-    message(STATUS "[VE] Configuring GLFW...")
+    message(STATUS "[EVA] Configuring GLFW...")
     set(GLFW_BUILD_DOCS OFF CACHE BOOL "Build GLFW documentation")
     set(GLFW_INSTALL OFF CACHE BOOL "Generate installation target")
-    add_subdirectory(${VE_EXTERNAL_DIR}/glfw EXCLUDE_FROM_ALL)
-    message(STATUS "[VE] GLFW configuration completed.")
+    add_subdirectory(${EVA_EXTERNAL_DIR}/glfw EXCLUDE_FROM_ALL)
+    message(STATUS "[EVA] GLFW configuration completed.")
 else()
-    message(STATUS "[VE] Using existing GLFW target")
+    message(STATUS "[EVA] Using existing GLFW target")
 endif()
 
 # Include directories
-target_include_directories(ve
+target_include_directories(eva
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         ${Vulkan_INCLUDE_DIRS}
 )
 
 # Link libraries
-target_link_libraries(ve
+target_link_libraries(eva
     PUBLIC
         ${Vulkan_LIBRARIES}
         glfw
@@ -109,7 +112,7 @@ target_link_libraries(ve
 )
 
 # Compiler definitions
-target_compile_definitions(ve
+target_compile_definitions(eva
     PUBLIC
         GLFW_INCLUDE_VULKAN
 )
@@ -120,7 +123,17 @@ target_compile_definitions(ve
 ################################################################################
 # Android
 if(ANDROID)
-    target_link_libraries(ve PRIVATE
+    target_link_libraries(eva PRIVATE
         android
     )
+endif()
+
+
+################################################################################
+# Samples
+################################################################################
+if(EVA_BUILD_SAMPLES)
+    message(STATUS "[EVA] Building sample projects...")
+    add_subdirectory(samples/raytracing)
+    message(STATUS "[EVA] Sample projects build configuration completed.")
 endif()
